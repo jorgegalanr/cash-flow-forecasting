@@ -1,14 +1,14 @@
 # 💶 Predicción de Tesorería Corporativa con IA (Cash Flow Forecasting)
 
 ## 📌 Descripción del Proyecto
-La gestión de la liquidez es el pilar fundamental de cualquier departamento financiero. Este proyecto desarrolla un **Gemelo Digital** de la tesorería de una empresa *asset-heavy* (Real Estate / Sector Educativo) y utiliza algoritmos de Inteligencia Artificial (**Facebook Prophet**) para predecir el flujo de caja a 60 días, superando las limitaciones de los modelos estáticos en Excel.
+La gestión de la liquidez es el pilar fundamental de cualquier departamento financiero. Este proyecto desarrolla un **Gemelo Digital** de la tesorería de una empresa *asset-heavy* (Sector Educativo) y utiliza algoritmos de Inteligencia Artificial (**Facebook Prophet**) para predecir el flujo de caja a 60 días, superando las limitaciones de los modelos estáticos en Excel.
 
 ## 🏢 El Caso de Negocio (Business Case)
-Se ha modelado una empresa que gestiona 10 residencias de estudiantes (3.000 camas) en España, sujeta a una fuerte estacionalidad y a una estructura de costes rígida.
+Se ha modelado una empresa que gestiona 10 activos en España, sujeta a una fuerte estacionalidad y a una estructura de costes rígida.
 
 ### Reglas del Modelo Financiero Inyectadas:
 * **Ingresos Híbridos:** * *Septiembre - Junio:* Cobro masivo de mensualidades (días 1 al 5).
-  * *Julio - Agosto:* Transición a modelo "albergue" con ingresos diarios y picos en fines de semana.
+  * *Julio - Agosto:* Transición a modelo "verano" con ingresos diarios y picos en fines de semana.
 * **Estructura de Costes (OpEx & Deuda):**
   * Pago de nóminas (día 28).
   * Fuerte carga de deuda inmobiliaria / Leasing (día 5).
