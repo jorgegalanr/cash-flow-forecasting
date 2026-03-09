@@ -23,13 +23,13 @@ for idx, row in df.iterrows():
     dia_semana = row['Dia_Semana']
     
     if mes in meses_curso:
-        if dia <= 5: # Cobro de mensualidades a estudiantes
+        if dia <= 5: # Cobro de mensualidades
             df.at[idx, 'Ingresos'] = np.random.normal(450000, 50000)
         else:
             # Resto del mes: ingresos residuales (vending, lavandería, eventos)
             df.at[idx, 'Ingresos'] = np.random.normal(3000, 500)
     else:
-        if dia_semana >= 4: # Fines de semana de verano (Albergue)
+        if dia_semana >= 4: # Fines de semana de verano
             df.at[idx, 'Ingresos'] = np.random.normal(95000, 10000)
         else:
             df.at[idx, 'Ingresos'] = np.random.normal(65000, 8000)
@@ -37,7 +37,7 @@ for idx, row in df.iterrows():
 # 3. LÓGICA DE GASTOS
 df['Gastos'] = np.where(df['Mes'].isin([7, 8]), 
                         np.random.normal(25000, 2000, len(df)),  # Gastos verano
-                        np.random.normal(15000, 1500, len(df)))  # Gastos curso
+                        np.random.normal(15000, 1500, len(df)))  # Gastos  resto
 
 # 4. HITOS FINANCIERS Y FISCALES
 # NÓMINAS (Día 28)
@@ -60,5 +60,5 @@ df['Saldo_Bancario'] = df['CashFlow'].cumsum() + 3200000 # Empezamos con 3.2M€
 
 # Exportación de la información a CSV
 df_final = df[['Fecha', 'Ingresos', 'Gastos', 'CashFlow', 'Saldo_Bancario']].round(2)
-df_final.to_csv('tesoreria_residencias.csv', index=False)
-print("✅ Archivo 'tesoreria_residencias.csv' generado con márgenes reales y dividendos.")
+df_final.to_csv('tesoreria_r.csv', index=False)
+print("✅ Archivo 'tesoreria_r.csv' generado con márgenes reales y dividendos.")
