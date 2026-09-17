@@ -12,6 +12,14 @@ movimientos del mismo modo:
 Los datos son completamente sintéticos. El proyecto no contiene información de
 ninguna empresa real.
 
+El generador crea dos ficheros:
+
+- `data/tesoreria_sintetica.csv`: versión numérica utilizada por el modelo.
+- `data/tesoreria_sintetica_euros.csv`: versión de consulta con formato español,
+  como `1.234.567,89 €`.
+
+La versión formateada no se utiliza para entrenar porque sus importes son texto.
+
 ## Problema de negocio
 
 Una previsión de tesorería debe responder a tres preguntas:
@@ -38,6 +46,21 @@ Se comparan dos métodos:
 La selección se realiza con tres ventanas de validación temporal de 60 días. El
 periodo final, del 31 de diciembre de 2025 al 28 de febrero de 2026, se utiliza
 una sola vez después de seleccionar el método.
+
+## Notebook de análisis
+
+El notebook [cash_flow_forecasting.ipynb](cash_flow_forecasting.ipynb) reproduce
+el proceso completo y muestra sus resultados:
+
+- generación del dataset mediante `generador_datos.py`;
+- análisis exploratorio diario y mensual;
+- construcción de las variables de calendario;
+- definición del baseline y del gradient boosting;
+- ventanas de validación y cálculo de métricas;
+- evaluación final, gráficas y escenarios de liquidez.
+
+El notebook está ejecutado para que las tablas y visualizaciones puedan
+consultarse directamente desde GitHub.
 
 ## Resultados
 
@@ -81,7 +104,7 @@ Los porcentajes son supuestos ilustrativos y no probabilidades calibradas.
 ├── tests/                      # Pruebas de generación y previsión
 ├── generador_datos.py          # Simulador financiero
 ├── train_model.py              # Backtesting, prueba final y escenarios
-└── cash_flow_forecasting.ipynb # Recorrido explicativo
+└── cash_flow_forecasting.ipynb # Análisis completo y ejecutado
 ```
 
 ## Ejecución

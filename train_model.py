@@ -22,7 +22,7 @@ from cashflow_forecasting.modeling import (  # noqa: E402
     evaluate_forecast,
     seasonal_naive_forecast,
 )
-from generador_datos import generate_cash_flow_data  # noqa: E402
+from generador_datos import export_cash_flow_data, generate_cash_flow_data  # noqa: E402
 
 
 DATA_PATH = Path("data/tesoreria_sintetica.csv")
@@ -36,8 +36,7 @@ TEST_START = pd.Timestamp("2025-12-31")
 
 def load_data() -> pd.DataFrame:
     data = generate_cash_flow_data()
-    DATA_PATH.parent.mkdir(parents=True, exist_ok=True)
-    data.to_csv(DATA_PATH, index=False)
+    export_cash_flow_data(data, numeric_path=DATA_PATH)
     data["Fecha"] = pd.to_datetime(data["Fecha"])
     return data
 

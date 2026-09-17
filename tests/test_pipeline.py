@@ -8,7 +8,12 @@ sys.path.insert(0, str(Path(__file__).parents[1]))
 sys.path.insert(0, str(Path(__file__).parents[1] / "src"))
 
 from cashflow_forecasting.modeling import CashFlowForecaster, add_balance
-from generador_datos import generate_cash_flow_data, scheduled_payments
+from generador_datos import (
+    export_cash_flow_data,
+    format_euro,
+    generate_cash_flow_data,
+    scheduled_payments,
+)
 
 
 def test_generated_data_is_reproducible_and_balanced():
@@ -27,6 +32,19 @@ def test_programmed_payments_follow_calendar():
     payments = scheduled_payments(dates)
 
     assert payments.tolist() == [1_200_000, 400_000, 350_000, 0]
+
+
+def test_euro_format_and_exports(tmp_path):
+    data = generate_cash_flow_data(start="2026-01-01", end="2026-01-03")
+    numeric_path = tmp_path / "numeric.csv"
+    formatted_path = tmp_path / "euros.csv"
+
+    export_cash_flow_data(data, numeric_path, formatted_path)
+
+    assert format_euro(1_234_567.8) == "1.234.567,80 €"
+    assert "€" not in numeric_path.read_text(encoding="utf-8")
+    assert "€" in formatted_path.read_text(encoding="utf-8")
+    assert ";" in formatted_path.read_text(encoding="utf-8")
 
 
 def test_forecast_has_expected_horizon_and_balance():
