@@ -1,35 +1,108 @@
-# 💶 Predicción de Tesorería Corporativa con IA (Cash Flow Forecasting)
+# Previsión de tesorería con validación temporal
 
-## 📌 Descripción del Proyecto
-La gestión de la liquidez es el pilar fundamental de cualquier departamento financiero. Este proyecto desarrolla un **Gemelo Digital** de la tesorería de una empresa *asset-heavy* (Sector Educativo) y utiliza algoritmos de Inteligencia Artificial (**Facebook Prophet**) para predecir el flujo de caja a 60 días, superando las limitaciones de los modelos estáticos en Excel.
+Proyecto sobre previsión de liquidez para una empresa ficticia
+multisede. El objetivo es estimar el saldo de caja a 60 días sin tratar todos los
+movimientos del mismo modo:
 
-## 🏢 El Caso de Negocio (Business Case)
-Se ha modelado una empresa que gestiona 10 activos en España, sujeta a una fuerte estacionalidad y a una estructura de costes rígida.
+- los pagos conocidos por calendario se incorporan como flujos programados;
+- los cobros y pagos operativos se estiman a partir de su histórico;
+- el saldo se reconstruye desde la posición de caja inicial;
+- la previsión se presenta en escenarios base, adverso y favorable.
 
-### Reglas del Modelo Financiero Inyectadas:
-* **Ingresos Híbridos:** * *Septiembre - Junio:* Cobro masivo de mensualidades (días 1 al 5).
-  * *Julio - Agosto:* Transición a modelo "verano" con ingresos diarios y picos en fines de semana.
-* **Estructura de Costes (OpEx & Deuda):**
-  * Pago de nóminas (día 28).
-  * Fuerte carga de deuda inmobiliaria / Leasing (día 5).
-  * Liquidación trimestral de IVA (día 20 de los meses de cierre).
-* **Retribución al Accionista:** Salida masiva de caja por pago de dividendos (30 de junio).
+Los datos son completamente sintéticos. El proyecto no contiene información de
+ninguna empresa real.
 
-## 📊 Conclusiones y Resultados del Modelo
-El algoritmo de predicción de series temporales ha sido capaz de interiorizar las reglas de negocio, arrojando los siguientes *insights*:
+## Problema de negocio
 
-1. **Predicción a 60 días (Liquidez Asegurada):** El modelo proyecta la liquidez para los próximos dos meses manteniendo el saldo sólidamente por encima de los 4,5M€, confirmando una posición de caja segura para afrontar obligaciones a corto plazo.
-2. **Crecimiento Estructural (Trend):** Se observa una tendencia incremental sostenida (de 3,8M€ a 4,8M€ en dos años), indicando que el modelo de negocio es rentable y genera *Free Cash Flow* de forma constante.
-3. **El Valle Estival (Yearly Seasonality):** El algoritmo detecta de forma autónoma una contracción drástica de la liquidez a finales de junio. Esto responde matemáticamente a la salida de 1M€ en dividendos combinada con la transición al modelo estival (cese de cobro de rentas fijas).
+Una previsión de tesorería debe responder a tres preguntas:
 
-## 🛠️ Tecnologías Utilizadas
-* **Python 3.12**
-* **Pandas & NumPy:** Ingeniería de datos y creación del dataset sintético financiero.
-* **Prophet (Meta):** Modelado predictivo de series temporales.
-* **Matplotlib:** Visualización de datos e intervalos de confianza.
+1. ¿Qué movimientos ya conocemos?
+2. ¿Qué movimientos necesitan una estimación?
+3. ¿Cómo cambia la posición de liquidez si los cobros o los costes se desvían?
 
-## 🚀 Cómo ejecutar este proyecto
-1. Clona este repositorio en tu máquina local.
-2. Instala las dependencias necesarias: `pip install pandas numpy prophet matplotlib`
-3. Ejecuta el script `generador_datos.py` para crear el dataset sintético (`tesoreria_residencias.csv`).
-4. Abre y ejecuta el notebook `prediccion_tesoreria.ipynb` para visualizar el entrenamiento y las predicciones del modelo.
+Por ese motivo, el modelo no predice directamente el saldo bancario. Primero
+estima los flujos inciertos y después añade nóminas, deuda, impuestos y otros
+pagos programados.
+
+## Metodología
+
+El histórico simulado abarca desde enero de 2021 hasta febrero de 2026.
+Contiene cobros, pagos operativos, pagos programados, flujo neto y saldo.
+
+Se comparan dos métodos:
+
+- **Baseline estacional:** utiliza el mismo día natural del año anterior.
+- **Gradient boosting:** dos modelos con variables de calendario, uno para
+  cobros y otro para pagos operativos.
+
+La selección se realiza con tres ventanas de validación temporal de 60 días. El
+periodo final, del 31 de diciembre de 2025 al 28 de febrero de 2026, se utiliza
+una sola vez después de seleccionar el método.
+
+## Resultados
+
+El gradient boosting obtuvo el menor error medio del saldo en validación:
+
+| Método | MAE medio del saldo en validación |
+|---|---:|
+| Baseline estacional | 210.763 € |
+| Gradient boosting | **165.697 €** |
+
+Resultados sobre el periodo de prueba final:
+
+| Método | WAPE del flujo diario | MAE del saldo | Error del saldo final |
+|---|---:|---:|---:|
+| Baseline estacional | 11,68 % | 193.788 € | -259.802 € |
+| Gradient boosting | **7,95 %** | **125.952 €** | **-136.960 €** |
+
+En este escenario sintético, el modelo reduce aproximadamente un **35 %** el
+MAE del saldo frente al baseline. Este resultado no debe interpretarse como una
+garantía de rendimiento con datos reales.
+
+![Comparación del saldo en prueba](reports/figures/test_balance_comparison.png)
+
+## Escenarios de liquidez
+
+- **Base:** previsión sin ajustes.
+- **Adverso:** cobros un 10 % inferiores y pagos operativos un 5 % superiores.
+- **Favorable:** cobros un 5 % superiores y pagos operativos un 2 % inferiores.
+
+![Escenarios de liquidez](reports/figures/forecast_scenarios_60d.png)
+
+Los porcentajes son supuestos ilustrativos y no probabilidades calibradas.
+
+## Estructura
+
+```text
+.
+├── data/                       # Datos sintéticos reproducibles
+├── reports/                    # Métricas, previsiones y gráficos
+├── src/cashflow_forecasting/   # Modelado y evaluación
+├── tests/                      # Pruebas de generación y previsión
+├── generador_datos.py          # Simulador financiero
+├── train_model.py              # Backtesting, prueba final y escenarios
+└── cash_flow_forecasting.ipynb # Recorrido explicativo
+```
+
+## Ejecución
+
+```bash
+python -m venv .venv
+source .venv/bin/activate       # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+python train_model.py
+pytest -q
+```
+
+El entrenamiento vuelve a generar los datos y todos los informes de forma
+determinista.
+
+## Limitaciones
+
+- Los datos han sido creados para este ejercicio y simplifican una tesorería real.
+- Los pagos programados se consideran conocidos y se añaden sin error.
+- No se modelizan retrasos de clientes, divisas, líneas de crédito ni cambios
+  inesperados del calendario de pagos.
+- Los escenarios son análisis de sensibilidad, no intervalos de confianza.
+- Antes de utilizar una solución similar en producción habría que validar la
+  calidad de los datos, los supuestos financieros y el error por horizonte.
