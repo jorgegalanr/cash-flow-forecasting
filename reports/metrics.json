@@ -1,0 +1,39 @@
+{
+  "selection_rule": "Menor MAE medio del saldo en tres ventanas de validación de 60 días",
+  "selected_method": "gradient_boosting",
+  "validation_average_balance_mae": {
+    "gradient_boosting": 165697.08,
+    "seasonal_naive": 210763.28
+  },
+  "test_period": {
+    "start": "2025-12-31",
+    "end": "2026-02-28",
+    "used_once_after_selection": true
+  },
+  "test_metrics": {
+    "seasonal_naive": {
+      "cash_flow_mae": 13833.1008,
+      "cash_flow_rmse": 32346.5106,
+      "cash_flow_wape": 0.1168,
+      "balance_mae": 193788.3022,
+      "ending_balance_error": -259802.12
+    },
+    "gradient_boosting": {
+      "cash_flow_mae": 9422.5357,
+      "cash_flow_rmse": 21741.5056,
+      "cash_flow_wape": 0.0795,
+      "balance_mae": 125951.9476,
+      "ending_balance_error": -136959.5033
+    }
+  },
+  "scenario_assumptions": {
+    "base": "Previsión seleccionada sin ajustes",
+    "adverse": "Cobros -10 % y pagos operativos +5 %",
+    "favourable": "Cobros +5 % y pagos operativos -2 %"
+  },
+  "limitations": [
+    "Datos completamente sintéticos",
+    "Los pagos programados se consideran conocidos y no se modelizan",
+    "Los escenarios son supuestos ilustrativos, no probabilidades calibradas"
+  ]
+}

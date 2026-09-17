@@ -1,64 +1,88 @@
-import pandas as pd
+"""Genera un escenario sintético y reproducible de tesorería diaria."""
+
+from pathlib import Path
+
 import numpy as np
+import pandas as pd
 
-np.random.seed(42)
 
-# 1. Fechas
-fechas = pd.date_range(start='2024-01-01', end='2026-02-28', freq='D')
-df = pd.DataFrame({'Fecha': fechas})
-df['Dia'] = df['Fecha'].dt.day
-df['Mes'] = df['Fecha'].dt.month
-df['Dia_Semana'] = df['Fecha'].dt.dayofweek # 0=Lunes, 6=Domingo
+RANDOM_STATE = 42
+START_DATE = "2021-01-01"
+END_DATE = "2026-02-28"
+OPENING_BALANCE = 3_200_000.0
 
-# Inicializamos columnas
-df['Ingresos'] = 0.0
-df['Gastos'] = 0.0
 
-# 2. LÓGICA DE INGRESOS (El modelo híbrido)
-meses_curso = [9, 10, 11, 12, 1, 2, 3, 4, 5, 6]
+def scheduled_payments(dates: pd.DatetimeIndex) -> np.ndarray:
+    """Devuelve pagos conocidos por calendario (importes positivos)."""
+    payments = np.zeros(len(dates), dtype=float)
+    day = dates.day
+    month = dates.month
 
-for idx, row in df.iterrows():
-    mes = row['Mes']
-    dia = row['Dia']
-    dia_semana = row['Dia_Semana']
-    
-    if mes in meses_curso:
-        if dia <= 5: # Cobro de mensualidades
-            df.at[idx, 'Ingresos'] = np.random.normal(450000, 50000)
-        else:
-            # Resto del mes: ingresos residuales (vending, lavandería, eventos)
-            df.at[idx, 'Ingresos'] = np.random.normal(3000, 500)
-    else:
-        if dia_semana >= 4: # Fines de semana de verano
-            df.at[idx, 'Ingresos'] = np.random.normal(95000, 10000)
-        else:
-            df.at[idx, 'Ingresos'] = np.random.normal(65000, 8000)
+    payments += np.where(day == 28, 350_000, 0)  # nóminas
+    payments += np.where(day == 5, 1_200_000, 0)  # deuda o leasing
+    payments += np.where(np.isin(month, [1, 4, 7, 10]) & (day == 20), 400_000, 0)
+    payments += np.where((month == 6) & (day == 30), 1_000_000, 0)
+    return payments
 
-# 3. LÓGICA DE GASTOS
-df['Gastos'] = np.where(df['Mes'].isin([7, 8]), 
-                        np.random.normal(25000, 2000, len(df)),  # Gastos verano
-                        np.random.normal(15000, 1500, len(df)))  # Gastos  resto
 
-# 4. HITOS FINANCIERS Y FISCALES
-# NÓMINAS (Día 28)
-df.loc[df['Dia'] == 28, 'Gastos'] += 350000
+def generate_cash_flow_data(
+    start: str = START_DATE,
+    end: str = END_DATE,
+    opening_balance: float = OPENING_BALANCE,
+    random_state: int = RANDOM_STATE,
+) -> pd.DataFrame:
+    """Crea datos ficticios para una empresa multisede con cobros recurrentes."""
+    rng = np.random.default_rng(random_state)
+    dates = pd.date_range(start=start, end=end, freq="D")
+    day = dates.day.to_numpy()
+    month = dates.month.to_numpy()
+    weekday = dates.dayofweek.to_numpy()
+    years_from_start = (dates.year - dates.year.min()).to_numpy()
 
-# DEUDA / LEASING (Día 5)
-df.loc[df['Dia'] == 5, 'Gastos'] += 1200000
+    recurring_month = np.isin(month, [1, 2, 3, 4, 5, 6, 9, 10, 11, 12])
+    collection_window = day <= 5
+    summer = np.isin(month, [7, 8])
+    weekend = weekday >= 5
 
-# IMPUESTOS / IVA (Día 20 del mes siguiente al trimestre)
-meses_iva = [1, 4, 7, 10]
-df.loc[(df['Mes'].isin(meses_iva)) & (df['Dia'] == 20), 'Gastos'] += 400000
+    growth = 1 + 0.018 * years_from_start
+    collections_mean = np.where(
+        recurring_month & collection_window,
+        450_000,
+        np.where(summer, np.where(weekend, 95_000, 65_000), 3_000),
+    )
+    collections_sd = np.where(
+        recurring_month & collection_window,
+        50_000,
+        np.where(summer, np.where(weekend, 10_000, 8_000), 500),
+    )
+    collections = np.maximum(rng.normal(collections_mean * growth, collections_sd), 0)
 
-# EL DIVIDENDO
-# Salida masiva de caja el 30 de junio para retribuir a los accionistas
-df.loc[(df['Mes'] == 6) & (df['Dia'] == 30), 'Gastos'] += 1000000
+    operating_mean = np.where(summer, 25_000, 15_000) * (1 + 0.012 * years_from_start)
+    operating_sd = np.where(summer, 2_000, 1_500)
+    operating_payments = np.maximum(rng.normal(operating_mean, operating_sd), 0)
+    programmed_payments = scheduled_payments(dates)
 
-# 5. CÁLCULO DE CAJA Y SALDO
-df['CashFlow'] = df['Ingresos'] - df['Gastos']
-df['Saldo_Bancario'] = df['CashFlow'].cumsum() + 3200000 # Empezamos con 3.2M€ de colchón
+    net_cash_flow = collections - operating_payments - programmed_payments
+    bank_balance = opening_balance + np.cumsum(net_cash_flow)
 
-# Exportación de la información a CSV
-df_final = df[['Fecha', 'Ingresos', 'Gastos', 'CashFlow', 'Saldo_Bancario']].round(2)
-df_final.to_csv('tesoreria_r.csv', index=False)
-print("✅ Archivo 'tesoreria_r.csv' generado con márgenes reales y dividendos.")
+    return pd.DataFrame(
+        {
+            "Fecha": dates,
+            "Cobros": collections,
+            "Pagos_Operativos": operating_payments,
+            "Pagos_Programados": programmed_payments,
+            "Flujo_Caja": net_cash_flow,
+            "Saldo_Bancario": bank_balance,
+        }
+    ).round(2)
+
+
+def main() -> None:
+    output_path = Path("data/tesoreria_sintetica.csv")
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    generate_cash_flow_data().to_csv(output_path, index=False)
+    print(f"Datos sintéticos guardados en {output_path}")
+
+
+if __name__ == "__main__":
+    main()
