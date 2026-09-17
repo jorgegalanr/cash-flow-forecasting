@@ -1,6 +1,6 @@
 # Previsión de tesorería con validación temporal
 
-Proyecto de portfolio sobre previsión de liquidez para una empresa ficticia
+Proyecto sobre previsión de liquidez para una empresa ficticia
 multisede. El objetivo es estimar el saldo de caja a 60 días sin tratar todos los
 movimientos del mismo modo:
 
