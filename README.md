@@ -39,6 +39,21 @@ La selección se realiza con tres ventanas de validación temporal de 60 días. 
 periodo final, del 31 de diciembre de 2025 al 28 de febrero de 2026, se utiliza
 una sola vez después de seleccionar el método.
 
+## Notebook de análisis
+
+El notebook [cash_flow_forecasting.ipynb](cash_flow_forecasting.ipynb) reproduce
+el proceso completo y muestra sus resultados:
+
+- generación de cobros y pagos sintéticos;
+- análisis exploratorio diario y mensual;
+- construcción de las variables de calendario;
+- definición del baseline y del gradient boosting;
+- ventanas de validación y cálculo de métricas;
+- evaluación final, gráficas y escenarios de liquidez.
+
+El notebook está ejecutado para que las tablas y visualizaciones puedan
+consultarse directamente desde GitHub.
+
 ## Resultados
 
 El gradient boosting obtuvo el menor error medio del saldo en validación:
@@ -81,7 +96,7 @@ Los porcentajes son supuestos ilustrativos y no probabilidades calibradas.
 ├── tests/                      # Pruebas de generación y previsión
 ├── generador_datos.py          # Simulador financiero
 ├── train_model.py              # Backtesting, prueba final y escenarios
-└── cash_flow_forecasting.ipynb # Recorrido explicativo
+└── cash_flow_forecasting.ipynb # Análisis completo y ejecutado
 ```
 
 ## Ejecución
