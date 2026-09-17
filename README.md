@@ -44,7 +44,7 @@ una sola vez después de seleccionar el método.
 El notebook [cash_flow_forecasting.ipynb](cash_flow_forecasting.ipynb) reproduce
 el proceso completo y muestra sus resultados:
 
-- generación de cobros y pagos sintéticos;
+- generación del dataset mediante `generador_datos.py`;
 - análisis exploratorio diario y mensual;
 - construcción de las variables de calendario;
 - definición del baseline y del gradient boosting;
