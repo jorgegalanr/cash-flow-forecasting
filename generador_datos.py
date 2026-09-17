@@ -10,6 +10,13 @@ RANDOM_STATE = 42
 START_DATE = "2021-01-01"
 END_DATE = "2026-02-28"
 OPENING_BALANCE = 3_200_000.0
+EURO_COLUMNS = [
+    "Cobros",
+    "Pagos_Operativos",
+    "Pagos_Programados",
+    "Flujo_Caja",
+    "Saldo_Bancario",
+]
 
 
 def scheduled_payments(dates: pd.DatetimeIndex) -> np.ndarray:
@@ -77,11 +84,49 @@ def generate_cash_flow_data(
     ).round(2)
 
 
+def format_euro(value: float) -> str:
+    """Formatea un importe con la convención española: 1.234,56 €."""
+    if pd.isna(value):
+        return ""
+    formatted = f"{float(value):,.2f}"
+    return (
+        formatted.replace(",", "_")
+        .replace(".", ",")
+        .replace("_", ".")
+        + " €"
+    )
+
+
+def format_cash_flow_for_display(data: pd.DataFrame) -> pd.DataFrame:
+    """Devuelve una copia legible; no debe utilizarse para modelizar."""
+    formatted = data.copy()
+    for column in EURO_COLUMNS:
+        if column in formatted:
+            formatted[column] = formatted[column].map(format_euro)
+    return formatted
+
+
+def export_cash_flow_data(
+    data: pd.DataFrame,
+    numeric_path: Path = Path("data/tesoreria_sintetica.csv"),
+    formatted_path: Path = Path("data/tesoreria_sintetica_euros.csv"),
+) -> None:
+    """Exporta una versión numérica y otra preparada para lectura humana."""
+    numeric_path.parent.mkdir(parents=True, exist_ok=True)
+    formatted_path.parent.mkdir(parents=True, exist_ok=True)
+    data.to_csv(numeric_path, index=False)
+    format_cash_flow_for_display(data).to_csv(
+        formatted_path,
+        index=False,
+        sep=";",
+    )
+
+
 def main() -> None:
-    output_path = Path("data/tesoreria_sintetica.csv")
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    generate_cash_flow_data().to_csv(output_path, index=False)
-    print(f"Datos sintéticos guardados en {output_path}")
+    data = generate_cash_flow_data()
+    export_cash_flow_data(data)
+    print("Datos numéricos: data/tesoreria_sintetica.csv")
+    print("Datos formateados en euros: data/tesoreria_sintetica_euros.csv")
 
 
 if __name__ == "__main__":

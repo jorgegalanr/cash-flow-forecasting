@@ -12,6 +12,14 @@ movimientos del mismo modo:
 Los datos son completamente sintéticos. El proyecto no contiene información de
 ninguna empresa real.
 
+El generador crea dos ficheros:
+
+- `data/tesoreria_sintetica.csv`: versión numérica utilizada por el modelo.
+- `data/tesoreria_sintetica_euros.csv`: versión de consulta con formato español,
+  como `1.234.567,89 €`.
+
+La versión formateada no se utiliza para entrenar porque sus importes son texto.
+
 ## Problema de negocio
 
 Una previsión de tesorería debe responder a tres preguntas:
